@@ -58,6 +58,10 @@ def main() -> None:
 
     if "history" not in st.session_state:
         st.session_state.history = []
+    if "audio_input_key" not in st.session_state:
+        st.session_state.audio_input_key = 0
+    if "file_uploader_key" not in st.session_state:
+        st.session_state.file_uploader_key = 0
 
     with st.sidebar:
         mode = st.radio(
@@ -77,12 +81,26 @@ def main() -> None:
     audio_source = None
     if input_method == "Record with microphone":
         st.caption("Click record, allow microphone access in your browser, say one digit, then stop recording.")
-        audio_source = st.audio_input("Record a spoken digit", sample_rate=22050)
+        audio_source = st.audio_input(
+            "Record a spoken digit",
+            sample_rate=22050,
+            key=f"audio-input-{st.session_state.audio_input_key}",
+        )
     else:
         audio_source = st.file_uploader(
             "Upload an audio file containing one spoken digit",
             type=["wav", "mp3", "m4a", "flac", "ogg"],
+            key=f"file-uploader-{st.session_state.file_uploader_key}",
         )
+
+    controls_left, controls_right = st.columns([1, 3])
+    with controls_left:
+        if st.button("Clear current audio", use_container_width=True):
+            if input_method == "Record with microphone":
+                st.session_state.audio_input_key += 1
+            else:
+                st.session_state.file_uploader_key += 1
+            st.rerun()
 
     if not audio_source:
         st.info("Record or upload audio to start.")
