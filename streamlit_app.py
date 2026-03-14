@@ -67,23 +67,36 @@ def main() -> None:
         )
         st.markdown("Supported formats: WAV, MP3, M4A, FLAC, OGG")
 
-    uploaded_file = st.file_uploader(
-        "Upload an audio file containing one spoken digit",
-        type=["wav", "mp3", "m4a", "flac", "ogg"],
+    st.subheader("Choose input method")
+    input_method = st.radio(
+        "Audio source",
+        ["Record with microphone", "Upload audio file"],
+        horizontal=True,
     )
-    if not uploaded_file:
-        st.info("Upload a file to start.")
+
+    audio_source = None
+    if input_method == "Record with microphone":
+        st.caption("Click record, allow microphone access in your browser, say one digit, then stop recording.")
+        audio_source = st.audio_input("Record a spoken digit", sample_rate=22050)
+    else:
+        audio_source = st.file_uploader(
+            "Upload an audio file containing one spoken digit",
+            type=["wav", "mp3", "m4a", "flac", "ogg"],
+        )
+
+    if not audio_source:
+        st.info("Record or upload audio to start.")
         return
 
-    st.audio(uploaded_file)
+    st.audio(audio_source)
 
     enhanced = _load_predictor("enhanced_digit_model.pth")
     original = _load_predictor("lightweight_digit_model.pth")
 
     if mode == "Compare both":
         left, right = st.columns(2)
-        temp_path, audio, orig_pred, orig_conf, orig_probs, report = _predict(uploaded_file, original)
-        _, _, enh_pred, enh_conf, enh_probs, _ = _predict(uploaded_file, enhanced)
+        temp_path, audio, orig_pred, orig_conf, orig_probs, report = _predict(audio_source, original)
+        _, _, enh_pred, enh_conf, enh_probs, _ = _predict(audio_source, enhanced)
 
         with left:
             st.subheader("Original model")
@@ -102,7 +115,7 @@ def main() -> None:
         selected_probs = enh_probs
     else:
         predictor = enhanced if mode == "Enhanced model" else original
-        temp_path, audio, selected_pred, selected_conf, selected_probs, report = _predict(uploaded_file, predictor)
+        temp_path, audio, selected_pred, selected_conf, selected_probs, report = _predict(audio_source, predictor)
         st.subheader(mode)
         c1, c2 = st.columns(2)
         c1.metric("Prediction", selected_pred)
@@ -123,7 +136,7 @@ def main() -> None:
 
     st.session_state.history.append(
         {
-            "file": uploaded_file.name,
+            "file": audio_source.name,
             "prediction": selected_pred,
             "confidence": round(selected_conf, 4),
         }

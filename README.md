@@ -1,6 +1,17 @@
 # Spoken Digit Recognition
 
-End-to-end spoken digit recognition project built around a lightweight CNN, reusable Python modules, a Streamlit app, and evaluation utilities for comparing baseline and enhanced checkpoints.
+[Open the live app](https://digit-classifier-model-1.streamlit.app)
+
+End-to-end spoken digit recognition project built around a lightweight CNN, reusable Python modules, a deployed Streamlit app, and evaluation utilities for comparing baseline and enhanced checkpoints.
+
+## Live app
+
+- Streamlit app: [https://digit-classifier-model-1.streamlit.app](https://digit-classifier-model-1.streamlit.app)
+- Repository: [https://github.com/okonp07/digit-classifier-model](https://github.com/okonp07/digit-classifier-model)
+
+Use the live app here:
+
+https://digit-classifier-model-1.streamlit.app
 
 ## What is in this repository
 
@@ -12,7 +23,32 @@ End-to-end spoken digit recognition project built around a lightweight CNN, reus
 - `tests/`: smoke tests for the model, preprocessing, and inference API.
 - `Digit_Classification_from_Audio.ipynb`: original notebook retained as a reference artifact.
 
-## Quick start
+## Use the app
+
+### Live app
+
+1. Open [https://digit-classifier-model-1.streamlit.app](https://digit-classifier-model-1.streamlit.app).
+2. Choose `Enhanced model`, `Original model`, or `Compare both` from the sidebar.
+3. Upload an audio file containing one spoken digit.
+4. Review the predicted digit, confidence scores, waveform, MFCC view, and audio-quality checks.
+5. Repeat with new files to compare outputs in the prediction history table.
+
+### Supported audio formats
+
+- `WAV`
+- `MP3`
+- `M4A`
+- `FLAC`
+- `OGG`
+
+### Best results
+
+- Speak a single digit from `0` to `9`.
+- Keep the clip short, ideally around `1-2 seconds`.
+- Record in a quiet environment when possible.
+- Use clear pronunciation.
+
+## Run locally
 
 ```bash
 git clone https://github.com/okonp07/digit-classifier-model.git
@@ -31,6 +67,12 @@ The app will look for:
 - `models/lightweight_digit_model.pth`
 
 Those checkpoints are already included in the repo.
+
+When Streamlit starts locally, open the URL shown in your terminal, usually:
+
+```text
+http://localhost:8501
+```
 
 ## Python API
 
@@ -101,6 +143,10 @@ The app supports:
 - waveform and MFCC visualizations
 - lightweight audio-quality checks
 - session prediction history
+
+Live deployment:
+
+- [https://digit-classifier-model-1.streamlit.app](https://digit-classifier-model-1.streamlit.app)
 
 Run it locally:
 
