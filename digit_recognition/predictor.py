@@ -66,9 +66,23 @@ class DigitPredictor:
         confidence = float(probabilities[predicted_digit])
         return predicted_digit, confidence, probabilities
 
+    def _predict_from_audio(self, audio_array: np.ndarray) -> tuple[int, float, np.ndarray]:
+        clips = self.processor.inference_clips(audio_array)
+        mfcc_batch = np.stack([self.processor.extract_mfcc(clip) for clip in clips], axis=0)
+        mfcc_tensor = torch.tensor(mfcc_batch, dtype=torch.float32).to(self.device)
+
+        with torch.inference_mode():
+            logits = self.model(mfcc_tensor)
+            mean_logits = logits.mean(dim=0, keepdim=True)
+            probabilities = torch.softmax(mean_logits, dim=1).squeeze(0).cpu().numpy()
+
+        predicted_digit = int(np.argmax(probabilities))
+        confidence = float(probabilities[predicted_digit])
+        return predicted_digit, confidence, probabilities
+
     def predict_from_file(self, audio_path: str | Path) -> tuple[int, float, np.ndarray]:
-        mfcc = self.processor.load_and_preprocess(audio_path)
-        return self._predict_tensor(mfcc)
+        audio = self.processor.load_audio(audio_path)
+        return self._predict_from_audio(audio)
 
     def predict_from_array(
         self,
@@ -83,8 +97,7 @@ class DigitPredictor:
                 orig_sr=sample_rate,
                 target_sr=self.processor.sample_rate,
             )
-        mfcc = self.processor.extract_mfcc(audio_array)
-        return self._predict_tensor(mfcc)
+        return self._predict_from_audio(np.asarray(audio_array, dtype=np.float32))
 
     def metadata(self) -> dict[str, object]:
         return {

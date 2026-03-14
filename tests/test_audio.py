@@ -21,3 +21,17 @@ def test_group_split_keeps_all_records():
     train, val = group_split_records(records, test_size=0.25, random_state=42)
     assert len(train) + len(val) == len(records)
     assert set(train).isdisjoint(set(val))
+
+
+def test_select_active_window_prefers_high_energy_region():
+    processor = AudioProcessor(sample_rate=10, max_duration=1.0)
+    audio = np.concatenate(
+        [
+            np.zeros(10, dtype=np.float32),
+            np.ones(10, dtype=np.float32),
+            np.zeros(10, dtype=np.float32),
+        ]
+    )
+    selected = processor.select_active_window(audio)
+    assert len(selected) == processor.max_length
+    assert np.mean(np.abs(selected)) > 0.5

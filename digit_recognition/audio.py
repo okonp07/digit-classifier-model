@@ -63,21 +63,89 @@ class AudioProcessor:
         audio, _ = librosa.load(Path(path), sr=self.sample_rate, mono=True)
         return audio.astype(np.float32, copy=False)
 
-    def pad_or_trim(self, audio: Sequence[float] | np.ndarray) -> np.ndarray:
+    def to_mono(self, audio: Sequence[float] | np.ndarray) -> np.ndarray:
         array = np.asarray(audio, dtype=np.float32)
         if array.ndim > 1:
             array = np.mean(array, axis=-1)
+        if not len(array):
+            return np.zeros(self.max_length, dtype=np.float32)
+        array = np.nan_to_num(array, nan=0.0, posinf=0.0, neginf=0.0)
+        return array.astype(np.float32, copy=False)
+
+    def normalize_audio(self, audio: Sequence[float] | np.ndarray) -> np.ndarray:
+        array = self.to_mono(audio)
+        array = array - float(np.mean(array))
+        peak = float(np.max(np.abs(array))) if len(array) else 0.0
+        if peak > 0:
+            array = 0.95 * (array / peak)
+        return array.astype(np.float32, copy=False)
+
+    def trim_silence(self, audio: Sequence[float] | np.ndarray, top_db: int = 30) -> np.ndarray:
+        librosa = _require_librosa()
+        array = self.to_mono(audio)
+        trimmed, _ = librosa.effects.trim(
+            array,
+            top_db=top_db,
+            frame_length=self.n_fft,
+            hop_length=self.hop_length,
+        )
+        if len(trimmed) == 0:
+            return array
+        return trimmed.astype(np.float32, copy=False)
+
+    def select_active_window(self, audio: Sequence[float] | np.ndarray) -> np.ndarray:
+        array = self.to_mono(audio)
+        if len(array) <= self.max_length:
+            return array
+        energy = np.square(array)
+        window = np.ones(self.max_length, dtype=np.float32)
+        scores = np.convolve(energy, window, mode="valid")
+        start = int(np.argmax(scores))
+        return array[start : start + self.max_length].astype(np.float32, copy=False)
+
+    def prepare_audio(self, audio: Sequence[float] | np.ndarray) -> np.ndarray:
+        array = self.normalize_audio(audio)
+        trimmed = self.trim_silence(array)
+        return self.normalize_audio(trimmed)
+
+    def pad_or_trim(self, audio: Sequence[float] | np.ndarray) -> np.ndarray:
+        array = self.to_mono(audio)
         if len(array) > self.max_length:
-            start = (len(array) - self.max_length) // 2
-            array = array[start : start + self.max_length]
+            array = self.select_active_window(array)
         elif len(array) < self.max_length:
             padding = self.max_length - len(array)
             array = np.pad(array, (0, padding), mode="constant")
         return array.astype(np.float32, copy=False)
 
+    def inference_clips(self, audio: Sequence[float] | np.ndarray) -> list[np.ndarray]:
+        prepared = self.prepare_audio(audio)
+        if len(prepared) <= self.max_length:
+            return [self.pad_or_trim(prepared)]
+
+        energy = np.square(prepared)
+        window = np.ones(self.max_length, dtype=np.float32)
+        scores = np.convolve(energy, window, mode="valid")
+        best_start = int(np.argmax(scores))
+        offset = max(self.max_length // 8, 1)
+        max_start = len(prepared) - self.max_length
+        candidate_starts = [
+            max(0, min(best_start - offset, max_start)),
+            best_start,
+            max(0, min(best_start + offset, max_start)),
+        ]
+
+        clips: list[np.ndarray] = []
+        seen: set[int] = set()
+        for start in candidate_starts:
+            if start in seen:
+                continue
+            seen.add(start)
+            clips.append(prepared[start : start + self.max_length].astype(np.float32, copy=False))
+        return clips
+
     def extract_mfcc(self, audio: Sequence[float] | np.ndarray) -> np.ndarray:
         librosa = _require_librosa()
-        processed = self.pad_or_trim(audio)
+        processed = self.pad_or_trim(self.prepare_audio(audio))
         mfcc = librosa.feature.mfcc(
             y=processed,
             sr=self.sample_rate,
