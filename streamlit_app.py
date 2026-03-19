@@ -192,6 +192,28 @@ def _inject_styles() -> None:
             margin-top: -0.35rem;
             margin-bottom: 0.9rem;
         }
+        .author-image-shell {
+            background: rgba(255, 252, 245, 0.78);
+            border: 1px solid rgba(148, 163, 184, 0.18);
+            border-radius: 24px;
+            padding: 1.35rem 1.2rem 1.25rem 1.2rem;
+            box-shadow: 0 12px 34px rgba(15, 23, 42, 0.06);
+            backdrop-filter: blur(10px);
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+        .author-image-caption {
+            margin-top: 1rem;
+            color: #374151;
+            line-height: 1.65;
+            font-size: 0.98rem;
+        }
+        .author-image-caption strong {
+            display: block;
+            color: #102a26;
+            font-size: 1.15rem;
+            margin-bottom: 0.2rem;
+        }
         .footer-shell {
             margin-top: 2.2rem;
             padding: 1.1rem 1rem 1.3rem 1rem;
@@ -398,10 +420,11 @@ def _render_about_page() -> None:
             "About the Author",
             """
             <div class="about-kicker">Author Profile</div>
-            <p><strong>Okon Prince</strong></p>
+            <p><strong>Prince Okon</strong></p>
             <div class="author-role">
-                Senior Data Scientist at MIVA Open University | AI Engineer &amp; Data Scientist
+                Engineer &amp; Data Scientist
             </div>
+            <p><strong>Senior Data Scientist at MIVA Open University</strong></p>
             <p>
                 I design and deploy end-to-end data systems that turn raw data into production-ready intelligence.
             </p>
@@ -425,13 +448,21 @@ def _render_about_page() -> None:
         )
 
     with author_image_col:
-        _detail_card(
-            "Author photo",
-            "<p style='margin-bottom:0.7rem;'>A professional portrait of the project author.</p>",
-        )
+        st.markdown('<div class="author-image-shell">', unsafe_allow_html=True)
         image_left, image_center, image_right = st.columns([0.12, 0.76, 0.12])
         with image_center:
             st.image(AUTHOR_IMAGE, use_container_width=True)
+        st.markdown(
+            """
+            <div class="author-image-caption">
+                <strong>Prince Okon</strong>
+                <div>Engineer &amp; Data Scientist</div>
+                <div>Senior Data Scientist at MIVA Open University</div>
+            </div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
 
 
 def _render_app_page() -> None:
