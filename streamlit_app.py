@@ -13,10 +13,10 @@ import pandas as pd
 import streamlit as st
 
 if TYPE_CHECKING:
-    from digit_recognition.predictor import DigitPredictor
+    from digit_recognition.transcriber import SpeechTranscriber, TranscriptionResult
 
 
-st.set_page_config(page_title="Spoken Digit Recognition", page_icon="🎤", layout="wide")
+st.set_page_config(page_title="Speech-to-Text Transcription", page_icon="🎤", layout="wide")
 
 ASSETS_DIR = Path(__file__).resolve().parent / "assets"
 AUTHOR_IMAGE = ASSETS_DIR / "pic1.png"
@@ -164,6 +164,28 @@ def _inject_styles() -> None:
             color: #15312d;
             font-weight: 600;
         }
+        .transcript-shell {
+            background: rgba(255, 252, 245, 0.88);
+            border: 1px solid rgba(148, 163, 184, 0.18);
+            border-radius: 24px;
+            padding: 1.2rem 1.25rem;
+            box-shadow: 0 12px 34px rgba(15, 23, 42, 0.06);
+            min-height: 220px;
+        }
+        .transcript-label {
+            color: #0f766e;
+            font-size: 0.82rem;
+            text-transform: uppercase;
+            letter-spacing: 0.14em;
+            margin-bottom: 0.8rem;
+            font-weight: 700;
+        }
+        .transcript-body {
+            color: #102a26;
+            font-size: 1.08rem;
+            line-height: 1.85;
+            white-space: pre-wrap;
+        }
         .history-caption {
             color: #4b5563;
             font-size: 0.92rem;
@@ -243,18 +265,18 @@ def _inject_styles() -> None:
 
 
 def _render_hero(
-    kicker: str = "Live Audio Demo",
-    title: str = "Spoken Digit Recognition",
+    kicker: str = "Live Speech-to-Text",
+    title: str = "Speech-to-Text Transcription",
     copy: str = (
-        "Record directly in the browser or upload a short clip, then compare the baseline and "
-        "enhanced models with confidence scores, waveform previews, and MFCC visualizations."
+        "Record directly in the browser or upload a spoken clip, then turn it into written text "
+        "with a confidence score, detected language, and audio diagnostics."
     ),
     pills: list[HeroPill] | None = None,
 ) -> None:
     pills = pills or [
         ("Microphone recording", "#input-section"),
-        ("Model comparison", "#results-section"),
-        ("Confidence tracking", "#history-section"),
+        ("Transcript output", "#results-section"),
+        ("Confidence score", "#results-section"),
         ("Audio quality checks", "#quality-checks-section"),
     ]
     pills_html = "".join(
@@ -307,7 +329,7 @@ def _render_footer() -> None:
         """
         <div class="footer-shell">
             <div>&copy; Okon Prince, 2026</div>
-            <div>This project demonstrates spoken digit classification from short audio clips.</div>
+            <div>This project demonstrates end-to-end speech-to-text transcription from spoken audio.</div>
             <div>Contact: okonp07@gmail.com | +234(0)9020000299</div>
         </div>
         """,
@@ -325,11 +347,12 @@ def _plot_audio(audio: np.ndarray, sample_rate: int):
     axes[0].set_xlabel("Time (s)")
     axes[0].set_ylabel("Amplitude")
 
-    mfcc = librosa.feature.mfcc(y=audio, sr=sample_rate, n_mfcc=13, n_fft=512, hop_length=256)
-    image = axes[1].imshow(mfcc, aspect="auto", origin="lower", cmap="magma")
-    axes[1].set_title("MFCC Features")
+    mel = librosa.feature.melspectrogram(y=audio, sr=sample_rate, n_mels=64, n_fft=1024, hop_length=256)
+    mel_db = librosa.power_to_db(mel, ref=np.max)
+    image = axes[1].imshow(mel_db, aspect="auto", origin="lower", cmap="magma")
+    axes[1].set_title("Mel Spectrogram")
     axes[1].set_xlabel("Frame")
-    axes[1].set_ylabel("Coefficient")
+    axes[1].set_ylabel("Mel Bin")
     figure.colorbar(image, ax=axes[1], shrink=0.8)
     figure.tight_layout()
     return figure
@@ -385,27 +408,41 @@ def _author_caption_html() -> str:
 
 
 @st.cache_resource
-def _load_predictor(model_name: str) -> "DigitPredictor":
+def _load_transcriber(model_size: str) -> "SpeechTranscriber":
     try:
-        from digit_recognition import DigitPredictor
+        from digit_recognition import SpeechTranscriber
     except ImportError as exc:
         raise RuntimeError(
-            "Model dependencies are unavailable. Install requirements.txt with Python 3.11 or 3.12 "
-            "before using the prediction page."
+            "Speech transcription dependencies are unavailable. Install requirements.txt with Python 3.11 "
+            "or 3.12 before using the app."
         ) from exc
-    return DigitPredictor(model_name)
+    return SpeechTranscriber(model_size=model_size)
 
 
-def _predict(uploaded_file, predictor: DigitPredictor):
+def _transcript_html(result: "TranscriptionResult") -> str:
+    transcript = escape(result.text).replace("\n", "<br>")
+    return (
+        '<div class="transcript-shell">'
+        '<div class="transcript-label">Transcript</div>'
+        f'<div class="transcript-body">{transcript}</div>'
+        "</div>"
+    )
+
+
+def _transcribe(uploaded_file, transcriber: "SpeechTranscriber", language: str | None):
     suffix = Path(uploaded_file.name).suffix or ".wav"
     with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as temp_file:
         temp_file.write(uploaded_file.getbuffer())
         temp_path = Path(temp_file.name)
 
-    pred, conf, probs = predictor.predict_from_file(temp_path)
-    audio = predictor.processor.load_audio(temp_path)
-    report = predictor.processor.quality_report(audio)
-    return temp_path, audio, pred, conf, probs, report
+    try:
+        result = transcriber.transcribe_file(temp_path, language=language)
+        audio = transcriber.processor.load_audio(temp_path)
+        report = transcriber.processor.quality_report(audio)
+    finally:
+        temp_path.unlink(missing_ok=True)
+
+    return audio, result, report
 
 
 def _render_about_page() -> None:
@@ -413,13 +450,13 @@ def _render_about_page() -> None:
         kicker="Project Overview",
         title="About",
         copy=(
-            "This page explains what the spoken digit recognition system does, how the solution works end to end, "
-            "and who built it."
+            "This page explains how the speech-to-text app captures audio, turns spoken words into text, "
+            "and presents a usable confidence score."
         ),
         pills=[
             ("Project summary", "#about-project"),
             ("System workflow", "#system-workflow"),
-            ("Model behavior", "#model-behavior"),
+            ("Confidence reporting", "#model-behavior"),
             ("Author profile", "#author-profile"),
         ],
     )
@@ -429,17 +466,16 @@ def _render_about_page() -> None:
         _html_paragraphs(
             [
                 (
-                    "This project is an interactive spoken digit recognition system built "
-                    "to classify a short audio recording into one of the digits from 0 to 9. "
-                    "It combines reusable machine learning code, packaged model checkpoints, "
-                    "and a Streamlit interface so the solution can be explored as a working "
-                    "app instead of only as a notebook experiment."
+                    "This project is an interactive speech-to-text system built to convert "
+                    "spoken audio into readable text. It combines reusable Python modules, "
+                    "a transcription model, and a Streamlit interface so the workflow can be "
+                    "experienced as a usable application instead of only as a machine learning demo."
                 ),
                 (
-                    "The goal is to make the full workflow visible and usable: capture "
-                    "audio, preprocess it, transform it into machine-readable features, "
-                    "run it through the trained neural network, and present the prediction "
-                    "in a way that is understandable to a non-technical user."
+                    "The goal is to make the full workflow visible and usable: capture audio, "
+                    "clean and analyze it, run it through a speech recognition model, and present "
+                    "the transcript with confidence information in a way that is understandable "
+                    "to a non-technical user."
                 ),
             ]
         ),
@@ -451,30 +487,20 @@ def _render_about_page() -> None:
         _html_paragraphs(
             [
                 (
-                    "The app accepts audio in two ways: a live browser microphone "
-                    "recording or an uploaded audio file. Once the sound is received, "
-                    "the system resamples it to a consistent sample rate, converts it "
-                    "to mono, trims as much leading and trailing silence as possible, "
-                    "normalizes the loudness, and then selects the strongest active "
-                    "portion of the signal so the model focuses on the spoken digit "
-                    "instead of silence or background noise."
+                    "The app accepts audio in two ways: a live browser microphone recording "
+                    "or an uploaded audio file. Once the sound is received, the system loads "
+                    "the clip at a consistent sample rate so it can generate reliable waveform "
+                    "views, audio checks, and transcription input."
                 ),
                 (
-                    "After preprocessing, the audio is converted into MFCC features "
-                    "(Mel-Frequency Cepstral Coefficients). These features are a compact "
-                    "representation of how the sound behaves across time and frequency, "
-                    "which makes them a practical input for speech-oriented models. "
-                    "The resulting feature map is passed into a lightweight convolutional "
-                    "neural network that was trained to output probabilities for the ten "
-                    "possible digits."
+                    "A Whisper-family speech recognition model then decodes the speech into text. "
+                    "Instead of predicting one of a few fixed labels, the model generates a "
+                    "natural-language transcript and can also estimate the language being spoken."
                 ),
                 (
-                    "During inference, the system can evaluate more than one closely "
-                    "related audio window and average the model outputs. This helps when "
-                    "the recorded speech is slightly early, late, or surrounded by silence. "
-                    "The final screen shows the predicted digit, the model confidence, a "
-                    "probability distribution across all classes, a waveform preview, MFCC "
-                    "visualization, and audio-quality checks that help explain poor predictions."
+                    "The app summarizes the output into a transcript, an overall confidence score, "
+                    "a detected-language readout, segment-level timing, waveform and spectrogram views, "
+                    "and audio-quality checks that help explain weak or noisy transcriptions."
                 ),
             ]
         ),
@@ -482,18 +508,23 @@ def _render_about_page() -> None:
     )
 
     _detail_card(
-        "Why the app is structured this way",
+        "How confidence is presented",
         _html_bullets(
             [
-                ("Usability", "The app works for both quick browser testing and uploaded evaluation clips."),
-                ("Transparency", "The prediction is supported by visual diagnostics instead of a raw number alone."),
+                ("Usability", "The app works for quick browser recording and uploaded audio clips."),
                 (
-                    "Reusability",
-                    "Training, evaluation, and inference live in Python modules, not only in a notebook.",
+                    "Transparency",
+                    "The transcript is paired with a confidence score, language metadata, and segment timings.",
                 ),
                 (
-                    "Deployment readiness",
-                    "Model files, dependencies, and UI are packaged so the project can run on Streamlit Cloud.",
+                    "Confidence logic",
+                    "The overall score is derived from segment- and word-level probabilities "
+                    "when the model exposes them.",
+                ),
+                (
+                    "Operational visibility",
+                    "Waveforms, spectrograms, and audio checks help users understand why a "
+                    "transcript is strong or weak.",
                 ),
             ]
         ),
@@ -528,14 +559,26 @@ def _render_app_page() -> None:
 
     with st.sidebar:
         st.markdown("### Control Panel")
-        mode = st.radio(
-            "Inference mode",
-            ["Enhanced model", "Original model", "Compare both"],
+        model_label = st.selectbox(
+            "Transcription model",
+            ["Fast (tiny)", "Balanced (base)", "Detailed (small)"],
+            index=1,
+        )
+        model_size = {
+            "Fast (tiny)": "tiny",
+            "Balanced (base)": "base",
+            "Detailed (small)": "small",
+        }[model_label]
+        language_label = st.selectbox(
+            "Language hint",
+            ["Auto detect", "English"],
             index=0,
         )
+        language = None if language_label == "Auto detect" else "en"
         st.markdown("Supported formats: WAV, MP3, M4A, FLAC, OGG")
         st.markdown("---")
-        st.caption("Best results come from a single spoken digit in a short, clean recording.")
+        st.caption("The first run may take longer while the speech model downloads.")
+        st.caption("Best results come from clear speech and low background noise.")
 
     _section_intro(
         "Input",
@@ -585,64 +628,72 @@ def _render_app_page() -> None:
     st.audio(audio_source)
 
     try:
-        enhanced = _load_predictor("enhanced_digit_model.pth")
-        original = _load_predictor("lightweight_digit_model.pth")
+        transcriber = _load_transcriber(model_size)
+        audio, result, report = _transcribe(audio_source, transcriber, language=language)
     except RuntimeError as exc:
         st.error(str(exc))
         st.caption(
             "If you deploy on Streamlit Community Cloud, choose Python 3.11 or 3.12 in Advanced settings."
         )
         return
+    except Exception as exc:
+        st.error(f"Transcription failed: {exc}")
+        st.caption("If this is the first run, confirm that model downloads are allowed in the deployment environment.")
+        return
 
     st.markdown(
         """
         <div class="results-banner" id="results-section">
-            Prediction ready. Use the comparison mode to see how the original and enhanced
-            checkpoints behave on the same clip.
+            Transcript ready. Review the written output, confidence score, and audio diagnostics below.
         </div>
         """,
         unsafe_allow_html=True,
     )
 
-    if mode == "Compare both":
-        left, right = st.columns(2)
-        temp_path, audio, orig_pred, orig_conf, orig_probs, report = _predict(audio_source, original)
-        _, _, enh_pred, enh_conf, enh_probs, _ = _predict(audio_source, enhanced)
+    transcript_col, metrics_col = st.columns([1.7, 1], gap="large")
+    with transcript_col:
+        st.markdown(_transcript_html(result), unsafe_allow_html=True)
 
-        with left:
-            st.subheader("Original model")
-            st.metric("Prediction", orig_pred)
-            st.metric("Confidence", f"{orig_conf:.1%}")
-            st.bar_chart({str(idx): float(value) for idx, value in enumerate(orig_probs)})
+    with metrics_col:
+        st.metric("Confidence", f"{result.confidence:.1%}")
+        st.metric("Detected language", result.language.upper())
+        st.metric(
+            "Language confidence",
+            "N/A" if result.language_confidence is None else f"{result.language_confidence:.1%}",
+        )
+        st.metric("Transcript duration", f"{result.duration_seconds:.1f}s")
 
-        with right:
-            st.subheader("Enhanced model")
-            st.metric("Prediction", enh_pred)
-            st.metric("Confidence", f"{enh_conf:.1%}")
-            st.bar_chart({str(idx): float(value) for idx, value in enumerate(enh_probs)})
-
-        selected_pred = enh_pred
-        selected_conf = enh_conf
-        selected_probs = enh_probs
-    else:
-        predictor = enhanced if mode == "Enhanced model" else original
-        temp_path, audio, selected_pred, selected_conf, selected_probs, report = _predict(audio_source, predictor)
-        st.subheader(mode)
-        c1, c2 = st.columns(2)
-        c1.metric("Prediction", selected_pred)
-        c2.metric("Confidence", f"{selected_conf:.1%}")
-        st.bar_chart({str(idx): float(value) for idx, value in enumerate(selected_probs)})
+    if result.segments:
+        _section_intro(
+            "Transcript timeline",
+            "Each row shows a transcribed segment with timing and confidence.",
+        )
+        st.dataframe(
+            pd.DataFrame(
+                [
+                    {
+                        "start_seconds": round(segment.start_seconds, 2),
+                        "end_seconds": round(segment.end_seconds, 2),
+                        "confidence": round(segment.confidence, 3),
+                        "text": segment.text,
+                    }
+                    for segment in result.segments
+                ]
+            ),
+            use_container_width=True,
+            hide_index=True,
+        )
 
     viz_col, qa_col = st.columns([1.5, 1])
     with viz_col:
         _section_intro(
             "Signal view",
             (
-                "The waveform and MFCC plots help you see whether the recording is clear, "
+                "The waveform and mel spectrogram help you see whether the recording is clear, "
                 "clipped, or dominated by silence."
             ),
         )
-        st.pyplot(_plot_audio(audio, enhanced.processor.sample_rate))
+        st.pyplot(_plot_audio(audio, transcriber.processor.sample_rate))
 
     with qa_col:
         _section_intro(
@@ -662,20 +713,21 @@ def _render_app_page() -> None:
     st.session_state.history.append(
         {
             "file": audio_source.name,
-            "prediction": selected_pred,
-            "confidence": round(selected_conf, 4),
+            "transcript_preview": result.text[:80] + ("..." if len(result.text) > 80 else ""),
+            "confidence": round(result.confidence, 4),
+            "language": result.language,
         }
     )
     _section_intro(
-        "Prediction history",
+        "Transcription history",
         (
-            "Track how the model responds across multiple takes so you can spot unstable "
-            "recordings or compare different speaking styles."
+            "Track how the app responds across multiple takes so you can compare speaking styles, "
+            "background conditions, and transcript confidence."
         ),
         anchor_id="history-section",
     )
     st.markdown(
-        '<div class="history-caption">Latest predictions from this session appear below.</div>',
+        '<div class="history-caption">Latest transcripts from this session appear below.</div>',
         unsafe_allow_html=True,
     )
     st.dataframe(pd.DataFrame(st.session_state.history), use_container_width=True, hide_index=True)

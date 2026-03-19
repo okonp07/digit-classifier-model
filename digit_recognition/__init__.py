@@ -7,6 +7,7 @@ __all__ = [
     "AudioQualityReport",
     "DigitPredictor",
     "LightweightDigitCNN",
+    "SpeechTranscriber",
 ]
 
 
@@ -19,4 +20,8 @@ def __getattr__(name: str):
         from .model import LightweightDigitCNN
 
         return LightweightDigitCNN
+    if name == "SpeechTranscriber":
+        from .transcriber import SpeechTranscriber
+
+        return SpeechTranscriber
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
