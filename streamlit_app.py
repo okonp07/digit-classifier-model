@@ -195,17 +195,18 @@ def _inject_styles() -> None:
             margin-top: -0.35rem;
             margin-bottom: 0.9rem;
         }
-        .author-side-caption {
+        .author-side-name {
             text-align: center;
-            color: #374151;
-            line-height: 1.65;
-            font-size: 0.98rem;
-        }
-        .author-side-caption strong {
-            display: block;
             color: #102a26;
             font-size: 1.15rem;
-            margin-bottom: 0.2rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+        .author-side-role {
+            text-align: center;
+            color: #0f766e;
+            font-weight: 700;
+            margin-bottom: 1rem;
         }
         .footer-shell {
             margin-top: 2.2rem;
@@ -342,9 +343,6 @@ def _author_profile_html() -> str:
     return "\n".join(
         [
             '<div class="about-kicker">Author Profile</div>',
-            f"<p><strong>{escape('Prince Okon')}</strong></p>",
-            f'<div class="author-role">{escape("Engineer & Data Scientist")}</div>',
-            f"<p><strong>{escape('Senior Data Scientist at MIVA Open University')}</strong></p>",
             _html_paragraphs(paragraphs),
             (
                 f"<p><strong>{escape('Belief:')}</strong> "
@@ -357,11 +355,8 @@ def _author_profile_html() -> str:
 def _author_caption_html() -> str:
     return "\n".join(
         [
-            '<div class="author-side-caption">',
-            f"<strong>{escape('Prince Okon')}</strong>",
-            f"<div>{escape('Engineer & Data Scientist')}</div>",
-            f"<div>{escape('Senior Data Scientist at MIVA Open University')}</div>",
-            "</div>",
+            f'<div class="author-side-name">{escape("Prince Okon")}</div>',
+            f'<div class="author-side-role">{escape("Engineer & Data Scientist")}</div>',
         ]
     )
 
@@ -477,15 +472,12 @@ def _render_about_page() -> None:
     author_text_col, author_image_col = st.columns([1.45, 1], gap="large")
     with author_text_col:
         _detail_card(
-            "About the Author",
+            "",
             _author_profile_html(),
         )
 
     with author_image_col:
-        _detail_card(
-            "",
-            _author_caption_html(),
-        )
+        st.markdown(_author_caption_html(), unsafe_allow_html=True)
         image_left, image_center, image_right = st.columns([0.12, 0.76, 0.12])
         with image_center:
             st.image(AUTHOR_IMAGE, use_container_width=True)
