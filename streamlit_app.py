@@ -15,6 +15,9 @@ from digit_recognition import DigitPredictor
 
 st.set_page_config(page_title="Spoken Digit Recognition", page_icon="🎤", layout="wide")
 
+ASSETS_DIR = Path(__file__).resolve().parent / "assets"
+AUTHOR_IMAGE = ASSETS_DIR / "pic1.png"
+
 
 def _inject_styles() -> None:
     st.markdown(
@@ -144,27 +147,89 @@ def _inject_styles() -> None:
             margin-top: -0.4rem;
             margin-bottom: 0.8rem;
         }
+        .detail-card {
+            background: rgba(255, 252, 245, 0.78);
+            border: 1px solid rgba(148, 163, 184, 0.18);
+            border-radius: 24px;
+            padding: 1.35rem 1.35rem 1.1rem 1.35rem;
+            box-shadow: 0 12px 34px rgba(15, 23, 42, 0.06);
+            backdrop-filter: blur(10px);
+            margin-bottom: 1rem;
+        }
+        .detail-card h3 {
+            margin: 0 0 0.85rem 0;
+            color: #102a26;
+            font-size: 1.2rem;
+            letter-spacing: -0.02em;
+        }
+        .detail-card p {
+            color: #374151;
+            line-height: 1.72;
+            font-size: 0.98rem;
+            margin-bottom: 0.8rem;
+        }
+        .detail-card ul {
+            color: #374151;
+            line-height: 1.72;
+            font-size: 0.98rem;
+            padding-left: 1.2rem;
+            margin-top: 0.35rem;
+        }
+        .about-kicker {
+            display: inline-block;
+            padding: 0.35rem 0.7rem;
+            border-radius: 999px;
+            background: rgba(15, 118, 110, 0.1);
+            color: #0f766e;
+            font-size: 0.82rem;
+            text-transform: uppercase;
+            letter-spacing: 0.14em;
+            margin-bottom: 0.9rem;
+        }
+        .author-role {
+            color: #0f766e;
+            font-weight: 700;
+            margin-top: -0.35rem;
+            margin-bottom: 0.9rem;
+        }
+        .footer-shell {
+            margin-top: 2.2rem;
+            padding: 1.1rem 1rem 1.3rem 1rem;
+            text-align: center;
+            color: #4b5563;
+            font-size: 0.93rem;
+            line-height: 1.8;
+        }
         </style>
         """,
         unsafe_allow_html=True,
     )
 
 
-def _render_hero() -> None:
+def _render_hero(
+    kicker: str = "Live Audio Demo",
+    title: str = "Spoken Digit Recognition",
+    copy: str = (
+        "Record directly in the browser or upload a short clip, then compare the baseline and "
+        "enhanced models with confidence scores, waveform previews, and MFCC visualizations."
+    ),
+    pills: list[str] | None = None,
+) -> None:
+    pills = pills or [
+        "Microphone recording",
+        "Model comparison",
+        "Confidence tracking",
+        "Audio quality checks",
+    ]
+    pills_html = "".join(f'<div class="hero-pill">{pill}</div>' for pill in pills)
     st.markdown(
-        """
+        f"""
         <div class="hero-shell">
-            <div class="hero-kicker">Live Audio Demo</div>
-            <div class="hero-title">Spoken Digit Recognition</div>
-            <div class="hero-copy">
-                Record directly in the browser or upload a short clip, then compare the baseline and enhanced
-                models with confidence scores, waveform previews, and MFCC visualizations.
-            </div>
+            <div class="hero-kicker">{kicker}</div>
+            <div class="hero-title">{title}</div>
+            <div class="hero-copy">{copy}</div>
             <div class="hero-pills">
-                <div class="hero-pill">Microphone recording</div>
-                <div class="hero-pill">Model comparison</div>
-                <div class="hero-pill">Confidence tracking</div>
-                <div class="hero-pill">Audio quality checks</div>
+                {pills_html}
             </div>
         </div>
         """,
@@ -178,6 +243,31 @@ def _section_intro(title: str, copy: str) -> None:
         <div class="section-card">
             <div class="section-title">{title}</div>
             <div class="section-copy">{copy}</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def _detail_card(title: str, body_html: str) -> None:
+    st.markdown(
+        f"""
+        <div class="detail-card">
+            <h3>{title}</h3>
+            {body_html}
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def _render_footer() -> None:
+    st.markdown(
+        """
+        <div class="footer-shell">
+            <div>&copy; Okon Prince, 2026</div>
+            <div>This is a simple mini project meant to illustrate the capacity to transform speach to text (STT)</div>
+            <div>enquiries; okonp07@gmail.com, +234(0)9020000299</div>
         </div>
         """,
         unsafe_allow_html=True,
@@ -221,8 +311,130 @@ def _predict(uploaded_file, predictor: DigitPredictor):
     return temp_path, audio, pred, conf, probs, report
 
 
-def main() -> None:
-    _inject_styles()
+def _render_about_page() -> None:
+    _render_hero(
+        kicker="Project Overview",
+        title="About",
+        copy=(
+            "This page explains what the spoken digit recognition system does, how the solution works end to end, "
+            "and who built it."
+        ),
+        pills=["Project summary", "System workflow", "Model behavior", "Author profile"],
+    )
+
+    _detail_card(
+        "About the project",
+        """
+        <p>
+            This project is an interactive spoken-digit recognition system built to classify a short audio recording
+            into one of the digits from <strong>0</strong> to <strong>9</strong>. It combines reusable machine learning
+            code, packaged model checkpoints, and a Streamlit interface so the solution can be explored as a working app
+            rather than only as a notebook experiment.
+        </p>
+        <p>
+            The goal is to make the full workflow visible and usable: collect audio,
+            preprocess it, transform it into machine-readable features, run it through
+            the trained neural network, and present the prediction in a way that is
+            understandable to a non-technical user.
+        </p>
+        """,
+    )
+
+    _detail_card(
+        "How the solution works",
+        """
+        <p>
+            The app accepts audio in two ways: a live browser microphone recording or
+            an uploaded audio file. Once the sound is received, the system resamples it
+            to a consistent sample rate, converts it to mono, trims away as much
+            leading and trailing silence as possible, normalizes the loudness, and then
+            selects the strongest active portion of the signal so the model focuses on
+            the spoken digit rather than on silence or background noise.
+        </p>
+        <p>
+            After preprocessing, the audio is converted into <strong>MFCC features</strong> (Mel-Frequency Cepstral
+            Coefficients). These features are a compact representation of how the sound
+            behaves across time and frequency, which makes them a practical input for
+            speech-oriented models. The resulting feature map is passed into a
+            lightweight convolutional neural network that was trained to output
+            probabilities for the ten possible digits.
+        </p>
+        <p>
+            During inference, the system can evaluate more than one closely related audio window and average the model
+            outputs. This helps when the recorded speech is slightly early, late, or surrounded by silence. The final
+            screen shows the predicted digit, the model confidence, a probability distribution across all classes, a
+            waveform preview, MFCC visualization, and audio-quality checks that help explain poor predictions.
+        </p>
+        """,
+    )
+
+    _detail_card(
+        "Why the app is structured this way",
+        """
+        <ul>
+            <li>
+                <strong>Usability:</strong> the app works for both quick browser testing
+                and uploaded evaluation clips.
+            </li>
+            <li>
+                <strong>Transparency:</strong> the prediction is supported by visual diagnostics
+                instead of a raw number alone.
+            </li>
+            <li>
+                <strong>Reusability:</strong> training, evaluation, and inference live in Python
+                modules, not only in a notebook.
+            </li>
+            <li>
+                <strong>Deployment readiness:</strong> model files, dependencies, and UI are
+                packaged so the project can run on Streamlit Cloud.
+            </li>
+        </ul>
+        """,
+    )
+
+    author_text_col, author_image_col = st.columns([1.45, 1], gap="large")
+    with author_text_col:
+        _detail_card(
+            "About the Author",
+            """
+            <div class="about-kicker">Author Profile</div>
+            <p><strong>Okon Prince</strong></p>
+            <div class="author-role">
+                Senior Data Scientist at MIVA Open University | AI Engineer &amp; Data Scientist
+            </div>
+            <p>
+                I design and deploy end-to-end data systems that turn raw data into production-ready intelligence.
+            </p>
+            <p>
+                My core stack includes Python, Streamlit, BigQuery, Supabase, Hugging Face, PySpark, SQL,
+                Machine Learning, LLMs, and Transformers.
+            </p>
+            <p>
+                My work spans risk scoring systems, A/B testing, AI-powered dashboards,
+                RAG pipelines, predictive analytics, and LLM-based solutions and AI research.
+            </p>
+            <p>
+                Currently, I work as a Senior Data Scientist at MIVA Open University,
+                building intelligent systems that drive analytics, decision support,
+                and scalable AI innovation.
+            </p>
+            <p>
+                <strong>I believe:</strong> models are trained, systems are engineered, impact is delivered.
+            </p>
+            """,
+        )
+
+    with author_image_col:
+        _detail_card(
+            "Author photo",
+            "<p style='margin-bottom:0.7rem;'>A professional portrait of the project author.</p>",
+        )
+        image_left, image_center, image_right = st.columns([0.12, 0.76, 0.12])
+        with image_center:
+            st.image(AUTHOR_IMAGE, use_container_width=True)
+
+
+def _render_app_page() -> None:
     _render_hero()
 
     if "history" not in st.session_state:
@@ -375,6 +587,20 @@ def main() -> None:
         unsafe_allow_html=True,
     )
     st.dataframe(pd.DataFrame(st.session_state.history), use_container_width=True, hide_index=True)
+
+
+def main() -> None:
+    _inject_styles()
+
+    with st.sidebar:
+        page = st.radio("Page", ["App", "About"], index=0)
+
+    if page == "About":
+        _render_about_page()
+    else:
+        _render_app_page()
+
+    _render_footer()
 
 
 if __name__ == "__main__":
