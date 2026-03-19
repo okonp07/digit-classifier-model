@@ -268,16 +268,8 @@ def _section_intro(title: str, copy: str) -> None:
 def _detail_card(title: str, body_html: str, kicker: str | None = None) -> None:
     title_html = f"<h3>{escape(title)}</h3>" if title else ""
     kicker_html = f'<div class="about-kicker">{escape(kicker)}</div>' if kicker else ""
-    st.markdown(
-        f"""
-        <div class="detail-card">
-            {title_html}
-            {kicker_html}
-            {body_html}
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
+    card_html = f'<div class="detail-card">{title_html}{kicker_html}{body_html}</div>'
+    st.markdown(card_html, unsafe_allow_html=True)
 
 
 def _render_footer() -> None:
