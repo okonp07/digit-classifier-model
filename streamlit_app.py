@@ -20,6 +20,7 @@ st.set_page_config(page_title="Spoken Digit Recognition", page_icon="🎤", layo
 
 ASSETS_DIR = Path(__file__).resolve().parent / "assets"
 AUTHOR_IMAGE = ASSETS_DIR / "pic1.png"
+HeroPill = tuple[str, str]
 
 
 def _inject_styles() -> None:
@@ -87,12 +88,26 @@ def _inject_styles() -> None:
             flex-wrap: wrap;
             gap: 0.65rem;
         }
-        .hero-pill {
+        a.hero-pill {
+            display: block;
             background: rgba(255, 249, 237, 0.12);
             border: 1px solid rgba(255, 249, 237, 0.2);
             border-radius: 999px;
             padding: 0.5rem 0.9rem;
             font-size: 0.9rem;
+            color: #fff9ed;
+            text-decoration: none;
+            transition: transform 0.18s ease, background 0.18s ease, border-color 0.18s ease;
+        }
+        a.hero-pill:hover {
+            transform: translateY(-1px);
+            background: rgba(255, 249, 237, 0.18);
+            border-color: rgba(255, 249, 237, 0.32);
+        }
+        a.hero-pill:focus,
+        a.hero-pill:focus-visible {
+            outline: 2px solid rgba(255, 249, 237, 0.8);
+            outline-offset: 2px;
         }
         .section-card {
             background: rgba(255, 252, 245, 0.72);
@@ -102,6 +117,11 @@ def _inject_styles() -> None:
             box-shadow: 0 12px 34px rgba(15, 23, 42, 0.06);
             backdrop-filter: blur(10px);
             margin-bottom: 1rem;
+        }
+        .section-card,
+        .detail-card,
+        .results-banner {
+            scroll-margin-top: 1.2rem;
         }
         .section-title {
             font-size: 1.1rem;
@@ -229,15 +249,18 @@ def _render_hero(
         "Record directly in the browser or upload a short clip, then compare the baseline and "
         "enhanced models with confidence scores, waveform previews, and MFCC visualizations."
     ),
-    pills: list[str] | None = None,
+    pills: list[HeroPill] | None = None,
 ) -> None:
     pills = pills or [
-        "Microphone recording",
-        "Model comparison",
-        "Confidence tracking",
-        "Audio quality checks",
+        ("Microphone recording", "#input-section"),
+        ("Model comparison", "#results-section"),
+        ("Confidence tracking", "#history-section"),
+        ("Audio quality checks", "#quality-checks-section"),
     ]
-    pills_html = "".join(f'<div class="hero-pill">{escape(pill)}</div>' for pill in pills)
+    pills_html = "".join(
+        f'<a class="hero-pill" href="{escape(href, quote=True)}">{escape(label)}</a>'
+        for label, href in pills
+    )
     st.markdown(
         f"""
         <div class="hero-shell">
@@ -253,10 +276,11 @@ def _render_hero(
     )
 
 
-def _section_intro(title: str, copy: str) -> None:
+def _section_intro(title: str, copy: str, anchor_id: str | None = None) -> None:
+    anchor_attr = f' id="{escape(anchor_id, quote=True)}"' if anchor_id else ""
     st.markdown(
         f"""
-        <div class="section-card">
+        <div class="section-card"{anchor_attr}>
             <div class="section-title">{escape(title)}</div>
             <div class="section-copy">{escape(copy)}</div>
         </div>
@@ -265,10 +289,16 @@ def _section_intro(title: str, copy: str) -> None:
     )
 
 
-def _detail_card(title: str, body_html: str, kicker: str | None = None) -> None:
+def _detail_card(
+    title: str,
+    body_html: str,
+    kicker: str | None = None,
+    anchor_id: str | None = None,
+) -> None:
+    anchor_attr = f' id="{escape(anchor_id, quote=True)}"' if anchor_id else ""
     title_html = f"<h3>{escape(title)}</h3>" if title else ""
     kicker_html = f'<div class="about-kicker">{escape(kicker)}</div>' if kicker else ""
-    card_html = f'<div class="detail-card">{title_html}{kicker_html}{body_html}</div>'
+    card_html = f'<div class="detail-card"{anchor_attr}>{title_html}{kicker_html}{body_html}</div>'
     st.markdown(card_html, unsafe_allow_html=True)
 
 
@@ -386,7 +416,12 @@ def _render_about_page() -> None:
             "This page explains what the spoken digit recognition system does, how the solution works end to end, "
             "and who built it."
         ),
-        pills=["Project summary", "System workflow", "Model behavior", "Author profile"],
+        pills=[
+            ("Project summary", "#about-project"),
+            ("System workflow", "#system-workflow"),
+            ("Model behavior", "#model-behavior"),
+            ("Author profile", "#author-profile"),
+        ],
     )
 
     _detail_card(
@@ -408,6 +443,7 @@ def _render_about_page() -> None:
                 ),
             ]
         ),
+        anchor_id="about-project",
     )
 
     _detail_card(
@@ -442,6 +478,7 @@ def _render_about_page() -> None:
                 ),
             ]
         ),
+        anchor_id="system-workflow",
     )
 
     _detail_card(
@@ -460,6 +497,7 @@ def _render_about_page() -> None:
                 ),
             ]
         ),
+        anchor_id="model-behavior",
     )
 
     author_text_col, author_image_col = st.columns([1.45, 1], gap="large")
@@ -468,6 +506,7 @@ def _render_about_page() -> None:
             "",
             _author_profile_html(),
             kicker="Author Profile",
+            anchor_id="author-profile",
         )
 
     with author_image_col:
@@ -504,6 +543,7 @@ def _render_app_page() -> None:
             "Pick how you want to interact with the app. The microphone option works "
             "directly in the browser, while upload mode is handy for pre-recorded test clips."
         ),
+        anchor_id="input-section",
     )
 
     input_method = st.radio(
@@ -556,7 +596,7 @@ def _render_app_page() -> None:
 
     st.markdown(
         """
-        <div class="results-banner">
+        <div class="results-banner" id="results-section">
             Prediction ready. Use the comparison mode to see how the original and enhanced
             checkpoints behave on the same clip.
         </div>
@@ -608,6 +648,7 @@ def _render_app_page() -> None:
         _section_intro(
             "Quality checks",
             "These quick diagnostics flag common recording issues that can reduce prediction quality.",
+            anchor_id="quality-checks-section",
         )
         st.write(
             {
@@ -631,6 +672,7 @@ def _render_app_page() -> None:
             "Track how the model responds across multiple takes so you can spot unstable "
             "recordings or compare different speaking styles."
         ),
+        anchor_id="history-section",
     )
     st.markdown(
         '<div class="history-caption">Latest predictions from this session appear below.</div>',
