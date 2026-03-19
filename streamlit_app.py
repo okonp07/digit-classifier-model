@@ -192,23 +192,13 @@ def _inject_styles() -> None:
             margin-top: -0.35rem;
             margin-bottom: 0.9rem;
         }
-        .author-image-shell {
-            background: rgba(255, 252, 245, 0.78);
-            border: 1px solid rgba(148, 163, 184, 0.18);
-            border-radius: 24px;
-            padding: 1.35rem 1.2rem 1.25rem 1.2rem;
-            box-shadow: 0 12px 34px rgba(15, 23, 42, 0.06);
-            backdrop-filter: blur(10px);
-            margin-bottom: 1rem;
+        .author-side-caption {
             text-align: center;
-        }
-        .author-image-caption {
-            margin-top: 1rem;
             color: #374151;
             line-height: 1.65;
             font-size: 0.98rem;
         }
-        .author-image-caption strong {
+        .author-side-caption strong {
             display: block;
             color: #102a26;
             font-size: 1.15rem;
@@ -448,21 +438,19 @@ def _render_about_page() -> None:
         )
 
     with author_image_col:
-        st.markdown('<div class="author-image-shell">', unsafe_allow_html=True)
-        image_left, image_center, image_right = st.columns([0.12, 0.76, 0.12])
-        with image_center:
-            st.image(AUTHOR_IMAGE, use_container_width=True)
-        st.markdown(
+        _detail_card(
+            "",
             """
-            <div class="author-image-caption">
+            <div class="author-side-caption">
                 <strong>Prince Okon</strong>
                 <div>Engineer &amp; Data Scientist</div>
                 <div>Senior Data Scientist at MIVA Open University</div>
             </div>
-            </div>
             """,
-            unsafe_allow_html=True,
         )
+        image_left, image_center, image_right = st.columns([0.12, 0.76, 0.12])
+        with image_center:
+            st.image(AUTHOR_IMAGE, use_container_width=True)
 
 
 def _render_app_page() -> None:
