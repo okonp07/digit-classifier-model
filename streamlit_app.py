@@ -265,12 +265,14 @@ def _section_intro(title: str, copy: str) -> None:
     )
 
 
-def _detail_card(title: str, body_html: str) -> None:
+def _detail_card(title: str, body_html: str, kicker: str | None = None) -> None:
     title_html = f"<h3>{escape(title)}</h3>" if title else ""
+    kicker_html = f'<div class="about-kicker">{escape(kicker)}</div>' if kicker else ""
     st.markdown(
         f"""
         <div class="detail-card">
             {title_html}
+            {kicker_html}
             {body_html}
         </div>
         """,
@@ -342,7 +344,6 @@ def _author_profile_html() -> str:
     ]
     return "\n".join(
         [
-            '<div class="about-kicker">Author Profile</div>',
             _html_paragraphs(paragraphs),
             (
                 f"<p><strong>{escape('Belief:')}</strong> "
@@ -474,6 +475,7 @@ def _render_about_page() -> None:
         _detail_card(
             "",
             _author_profile_html(),
+            kicker="Author Profile",
         )
 
     with author_image_col:
