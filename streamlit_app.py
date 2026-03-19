@@ -402,7 +402,7 @@ def _author_caption_html() -> str:
     return "\n".join(
         [
             f'<div class="author-side-name">{escape("Prince Okon")}</div>',
-            f'<div class="author-side-role">{escape("Engineer & Data Scientist")}</div>',
+            f'<div class="author-side-role">{escape("ML Engineer & Data Scientist")}</div>',
         ]
     )
 
