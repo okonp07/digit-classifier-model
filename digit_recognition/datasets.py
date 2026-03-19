@@ -4,14 +4,27 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterable, Optional
+from typing import TYPE_CHECKING, Iterable, Optional
 
 import numpy as np
-import torch
 from sklearn.model_selection import GroupShuffleSplit
-from torch.utils.data import Dataset
 
 from .audio import AudioProcessor
+
+if TYPE_CHECKING:
+    import torch
+    from torch.utils.data import Dataset
+else:
+    try:
+        import torch
+        from torch.utils.data import Dataset
+    except ImportError:  # pragma: no cover - depends on local environment
+        torch = None
+
+        class Dataset:  # type: ignore[override]
+            """Fallback base so metadata helpers stay importable without torch."""
+
+            pass
 
 
 @dataclass(frozen=True)
@@ -69,7 +82,9 @@ class SpeechDigitDataset(Dataset):
     def __len__(self) -> int:
         return len(self.records)
 
-    def __getitem__(self, index: int) -> tuple[torch.Tensor, torch.Tensor]:
+    def __getitem__(self, index: int) -> tuple["torch.Tensor", "torch.Tensor"]:
+        if torch is None:
+            raise ImportError("torch is required to use SpeechDigitDataset. Install project requirements first.")
         record = self.records[index]
         audio = self.processor.load_audio(record.path)
         if self.augmenter and np.random.random() < self.augment_probability:

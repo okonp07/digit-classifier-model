@@ -61,6 +61,12 @@ python -m pip install -r requirements.txt
 streamlit run streamlit_app.py
 ```
 
+Recommended Python version:
+
+- Python `3.11` or `3.12`
+
+If you deploy on Streamlit Community Cloud, choose the Python version from the deployment `Advanced settings`. Streamlit Community Cloud defaults can change over time, and the model stack in this repo is most reliable on Python `3.11` or `3.12`. See the official docs: [Deploy your app](https://docs.streamlit.io/deploy/streamlit-community-cloud/deploy-your-app/deploy) and [Manage dependencies](https://docs.streamlit.io/deploy/concepts/dependencies).
+
 The app will look for:
 
 - `models/enhanced_digit_model.pth`

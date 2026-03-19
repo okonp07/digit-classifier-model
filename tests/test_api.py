@@ -3,10 +3,14 @@ import struct
 import wave
 from pathlib import Path
 
-from digit_recognition import DigitPredictor
-from digit_recognition.model import LightweightDigitCNN
-from digit_recognition.training import save_checkpoint
-from digit_recognition.audio import AudioProcessor
+import pytest
+
+pytest.importorskip("torch")
+
+from digit_recognition import DigitPredictor  # noqa: E402
+from digit_recognition.audio import AudioProcessor  # noqa: E402
+from digit_recognition.model import LightweightDigitCNN  # noqa: E402
+from digit_recognition.training import save_checkpoint  # noqa: E402
 
 
 def _write_wave(path: Path, sample_rate: int = 22_050, duration: float = 1.0) -> None:

@@ -3,14 +3,17 @@
 from __future__ import annotations
 
 import tempfile
+from html import escape
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import streamlit as st
 
-from digit_recognition import DigitPredictor
+if TYPE_CHECKING:
+    from digit_recognition.predictor import DigitPredictor
 
 
 st.set_page_config(page_title="Spoken Digit Recognition", page_icon="🎤", layout="wide")
@@ -233,13 +236,13 @@ def _render_hero(
         "Confidence tracking",
         "Audio quality checks",
     ]
-    pills_html = "".join(f'<div class="hero-pill">{pill}</div>' for pill in pills)
+    pills_html = "".join(f'<div class="hero-pill">{escape(pill)}</div>' for pill in pills)
     st.markdown(
         f"""
         <div class="hero-shell">
-            <div class="hero-kicker">{kicker}</div>
-            <div class="hero-title">{title}</div>
-            <div class="hero-copy">{copy}</div>
+            <div class="hero-kicker">{escape(kicker)}</div>
+            <div class="hero-title">{escape(title)}</div>
+            <div class="hero-copy">{escape(copy)}</div>
             <div class="hero-pills">
                 {pills_html}
             </div>
@@ -253,8 +256,8 @@ def _section_intro(title: str, copy: str) -> None:
     st.markdown(
         f"""
         <div class="section-card">
-            <div class="section-title">{title}</div>
-            <div class="section-copy">{copy}</div>
+            <div class="section-title">{escape(title)}</div>
+            <div class="section-copy">{escape(copy)}</div>
         </div>
         """,
         unsafe_allow_html=True,
@@ -262,10 +265,11 @@ def _section_intro(title: str, copy: str) -> None:
 
 
 def _detail_card(title: str, body_html: str) -> None:
+    title_html = f"<h3>{escape(title)}</h3>" if title else ""
     st.markdown(
         f"""
         <div class="detail-card">
-            <h3>{title}</h3>
+            {title_html}
             {body_html}
         </div>
         """,
@@ -278,8 +282,8 @@ def _render_footer() -> None:
         """
         <div class="footer-shell">
             <div>&copy; Okon Prince, 2026</div>
-            <div>This is a simple mini project meant to illustrate the capacity to transform speach to text (STT)</div>
-            <div>enquiries; okonp07@gmail.com, +234(0)9020000299</div>
+            <div>This project demonstrates spoken digit classification from short audio clips.</div>
+            <div>Contact: okonp07@gmail.com | +234(0)9020000299</div>
         </div>
         """,
         unsafe_allow_html=True,
@@ -306,8 +310,71 @@ def _plot_audio(audio: np.ndarray, sample_rate: int):
     return figure
 
 
+def _html_paragraphs(paragraphs: list[str]) -> str:
+    return "\n".join(f"<p>{escape(paragraph)}</p>" for paragraph in paragraphs)
+
+
+def _html_bullets(items: list[tuple[str, str]]) -> str:
+    bullet_html = "".join(
+        f"<li><strong>{escape(label)}:</strong> {escape(description)}</li>"
+        for label, description in items
+    )
+    return f"<ul>{bullet_html}</ul>"
+
+
+def _author_profile_html() -> str:
+    paragraphs = [
+        "I design and deploy end-to-end data systems that turn raw data into production-ready intelligence.",
+        (
+            "My core stack includes Python, Streamlit, BigQuery, Supabase, Hugging Face, "
+            "PySpark, SQL, machine learning, LLMs, and transformers."
+        ),
+        (
+            "My work spans risk scoring systems, A/B testing, AI-powered dashboards, "
+            "RAG pipelines, predictive analytics, and applied AI research."
+        ),
+        (
+            "Currently, I work as a Senior Data Scientist at MIVA Open University, "
+            "building intelligent systems that drive analytics, decision support, "
+            "and scalable AI innovation."
+        ),
+    ]
+    return "\n".join(
+        [
+            '<div class="about-kicker">Author Profile</div>',
+            f"<p><strong>{escape('Prince Okon')}</strong></p>",
+            f'<div class="author-role">{escape("Engineer & Data Scientist")}</div>',
+            f"<p><strong>{escape('Senior Data Scientist at MIVA Open University')}</strong></p>",
+            _html_paragraphs(paragraphs),
+            (
+                f"<p><strong>{escape('Belief:')}</strong> "
+                f"{escape('Models are trained, systems are engineered, impact is delivered.')}</p>"
+            ),
+        ]
+    )
+
+
+def _author_caption_html() -> str:
+    return "\n".join(
+        [
+            '<div class="author-side-caption">',
+            f"<strong>{escape('Prince Okon')}</strong>",
+            f"<div>{escape('Engineer & Data Scientist')}</div>",
+            f"<div>{escape('Senior Data Scientist at MIVA Open University')}</div>",
+            "</div>",
+        ]
+    )
+
+
 @st.cache_resource
-def _load_predictor(model_name: str) -> DigitPredictor:
+def _load_predictor(model_name: str) -> "DigitPredictor":
+    try:
+        from digit_recognition import DigitPredictor
+    except ImportError as exc:
+        raise RuntimeError(
+            "Model dependencies are unavailable. Install requirements.txt with Python 3.11 or 3.12 "
+            "before using the prediction page."
+        ) from exc
     return DigitPredictor(model_name)
 
 
@@ -336,117 +403,88 @@ def _render_about_page() -> None:
 
     _detail_card(
         "About the project",
-        """
-        <p>
-            This project is an interactive spoken-digit recognition system built to classify a short audio recording
-            into one of the digits from <strong>0</strong> to <strong>9</strong>. It combines reusable machine learning
-            code, packaged model checkpoints, and a Streamlit interface so the solution can be explored as a working app
-            rather than only as a notebook experiment.
-        </p>
-        <p>
-            The goal is to make the full workflow visible and usable: collect audio,
-            preprocess it, transform it into machine-readable features, run it through
-            the trained neural network, and present the prediction in a way that is
-            understandable to a non-technical user.
-        </p>
-        """,
+        _html_paragraphs(
+            [
+                (
+                    "This project is an interactive spoken digit recognition system built "
+                    "to classify a short audio recording into one of the digits from 0 to 9. "
+                    "It combines reusable machine learning code, packaged model checkpoints, "
+                    "and a Streamlit interface so the solution can be explored as a working "
+                    "app instead of only as a notebook experiment."
+                ),
+                (
+                    "The goal is to make the full workflow visible and usable: capture "
+                    "audio, preprocess it, transform it into machine-readable features, "
+                    "run it through the trained neural network, and present the prediction "
+                    "in a way that is understandable to a non-technical user."
+                ),
+            ]
+        ),
     )
 
     _detail_card(
         "How the solution works",
-        """
-        <p>
-            The app accepts audio in two ways: a live browser microphone recording or
-            an uploaded audio file. Once the sound is received, the system resamples it
-            to a consistent sample rate, converts it to mono, trims away as much
-            leading and trailing silence as possible, normalizes the loudness, and then
-            selects the strongest active portion of the signal so the model focuses on
-            the spoken digit rather than on silence or background noise.
-        </p>
-        <p>
-            After preprocessing, the audio is converted into <strong>MFCC features</strong> (Mel-Frequency Cepstral
-            Coefficients). These features are a compact representation of how the sound
-            behaves across time and frequency, which makes them a practical input for
-            speech-oriented models. The resulting feature map is passed into a
-            lightweight convolutional neural network that was trained to output
-            probabilities for the ten possible digits.
-        </p>
-        <p>
-            During inference, the system can evaluate more than one closely related audio window and average the model
-            outputs. This helps when the recorded speech is slightly early, late, or surrounded by silence. The final
-            screen shows the predicted digit, the model confidence, a probability distribution across all classes, a
-            waveform preview, MFCC visualization, and audio-quality checks that help explain poor predictions.
-        </p>
-        """,
+        _html_paragraphs(
+            [
+                (
+                    "The app accepts audio in two ways: a live browser microphone "
+                    "recording or an uploaded audio file. Once the sound is received, "
+                    "the system resamples it to a consistent sample rate, converts it "
+                    "to mono, trims as much leading and trailing silence as possible, "
+                    "normalizes the loudness, and then selects the strongest active "
+                    "portion of the signal so the model focuses on the spoken digit "
+                    "instead of silence or background noise."
+                ),
+                (
+                    "After preprocessing, the audio is converted into MFCC features "
+                    "(Mel-Frequency Cepstral Coefficients). These features are a compact "
+                    "representation of how the sound behaves across time and frequency, "
+                    "which makes them a practical input for speech-oriented models. "
+                    "The resulting feature map is passed into a lightweight convolutional "
+                    "neural network that was trained to output probabilities for the ten "
+                    "possible digits."
+                ),
+                (
+                    "During inference, the system can evaluate more than one closely "
+                    "related audio window and average the model outputs. This helps when "
+                    "the recorded speech is slightly early, late, or surrounded by silence. "
+                    "The final screen shows the predicted digit, the model confidence, a "
+                    "probability distribution across all classes, a waveform preview, MFCC "
+                    "visualization, and audio-quality checks that help explain poor predictions."
+                ),
+            ]
+        ),
     )
 
     _detail_card(
         "Why the app is structured this way",
-        """
-        <ul>
-            <li>
-                <strong>Usability:</strong> the app works for both quick browser testing
-                and uploaded evaluation clips.
-            </li>
-            <li>
-                <strong>Transparency:</strong> the prediction is supported by visual diagnostics
-                instead of a raw number alone.
-            </li>
-            <li>
-                <strong>Reusability:</strong> training, evaluation, and inference live in Python
-                modules, not only in a notebook.
-            </li>
-            <li>
-                <strong>Deployment readiness:</strong> model files, dependencies, and UI are
-                packaged so the project can run on Streamlit Cloud.
-            </li>
-        </ul>
-        """,
+        _html_bullets(
+            [
+                ("Usability", "The app works for both quick browser testing and uploaded evaluation clips."),
+                ("Transparency", "The prediction is supported by visual diagnostics instead of a raw number alone."),
+                (
+                    "Reusability",
+                    "Training, evaluation, and inference live in Python modules, not only in a notebook.",
+                ),
+                (
+                    "Deployment readiness",
+                    "Model files, dependencies, and UI are packaged so the project can run on Streamlit Cloud.",
+                ),
+            ]
+        ),
     )
 
     author_text_col, author_image_col = st.columns([1.45, 1], gap="large")
     with author_text_col:
         _detail_card(
             "About the Author",
-            """
-            <div class="about-kicker">Author Profile</div>
-            <p><strong>Prince Okon</strong></p>
-            <div class="author-role">
-                Engineer &amp; Data Scientist
-            </div>
-            <p><strong>Senior Data Scientist at MIVA Open University</strong></p>
-            <p>
-                I design and deploy end-to-end data systems that turn raw data into production-ready intelligence.
-            </p>
-            <p>
-                My core stack includes Python, Streamlit, BigQuery, Supabase, Hugging Face, PySpark, SQL,
-                Machine Learning, LLMs, and Transformers.
-            </p>
-            <p>
-                My work spans risk scoring systems, A/B testing, AI-powered dashboards,
-                RAG pipelines, predictive analytics, and LLM-based solutions and AI research.
-            </p>
-            <p>
-                Currently, I work as a Senior Data Scientist at MIVA Open University,
-                building intelligent systems that drive analytics, decision support,
-                and scalable AI innovation.
-            </p>
-            <p>
-                <strong>I believe:</strong> models are trained, systems are engineered, impact is delivered.
-            </p>
-            """,
+            _author_profile_html(),
         )
 
     with author_image_col:
         _detail_card(
             "",
-            """
-            <div class="author-side-caption">
-                <strong>Prince Okon</strong>
-                <div>Engineer &amp; Data Scientist</div>
-                <div>Senior Data Scientist at MIVA Open University</div>
-            </div>
-            """,
+            _author_caption_html(),
         )
         image_left, image_center, image_right = st.columns([0.12, 0.76, 0.12])
         with image_center:
@@ -520,8 +558,15 @@ def _render_app_page() -> None:
 
     st.audio(audio_source)
 
-    enhanced = _load_predictor("enhanced_digit_model.pth")
-    original = _load_predictor("lightweight_digit_model.pth")
+    try:
+        enhanced = _load_predictor("enhanced_digit_model.pth")
+        original = _load_predictor("lightweight_digit_model.pth")
+    except RuntimeError as exc:
+        st.error(str(exc))
+        st.caption(
+            "If you deploy on Streamlit Community Cloud, choose Python 3.11 or 3.12 in Advanced settings."
+        )
+        return
 
     st.markdown(
         """
