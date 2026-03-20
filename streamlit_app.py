@@ -409,7 +409,17 @@ def _render_sidebar_navigation() -> str:
         ):
             st.session_state.page = "About"
             st.rerun()
-        st.link_button("future development", FUTURE_DEVELOPMENT_URL, use_container_width=True)
+        link_future, link_codebase = st.columns(2)
+        link_future.link_button(
+            "future development",
+            FUTURE_DEVELOPMENT_URL,
+            use_container_width=True,
+        )
+        link_codebase.link_button(
+            "codebase",
+            REPO_URL,
+            use_container_width=True,
+        )
         st.markdown("---")
 
     return st.session_state.page
