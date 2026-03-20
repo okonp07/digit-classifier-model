@@ -1,4 +1,4 @@
-"""Interactive app for spoken digit recognition."""
+"""Interactive app for speech-to-text transcription."""
 
 from __future__ import annotations
 
@@ -20,6 +20,8 @@ st.set_page_config(page_title="Speech-to-Text Transcription", page_icon="🎤", 
 
 ASSETS_DIR = Path(__file__).resolve().parent / "assets"
 AUTHOR_IMAGE = ASSETS_DIR / "pic1.png"
+REPO_URL = "https://github.com/okonp07/digit-classifier-model"
+FUTURE_DEVELOPMENT_URL = f"{REPO_URL}/blob/main/future-development.md"
 HeroPill = tuple[str, str]
 
 
@@ -231,25 +233,6 @@ def _inject_styles() -> None:
             letter-spacing: 0.14em;
             margin-bottom: 0.9rem;
         }
-        .author-role {
-            color: #0f766e;
-            font-weight: 700;
-            margin-top: -0.35rem;
-            margin-bottom: 0.9rem;
-        }
-        .author-side-name {
-            text-align: center;
-            color: #102a26;
-            font-size: 1.15rem;
-            font-weight: 700;
-            margin-bottom: 0.25rem;
-        }
-        .author-side-role {
-            text-align: center;
-            color: #0f766e;
-            font-weight: 700;
-            margin-bottom: 1rem;
-        }
         .footer-shell {
             margin-top: 2.2rem;
             padding: 1.1rem 1rem 1.3rem 1rem;
@@ -329,8 +312,11 @@ def _render_footer() -> None:
         """
         <div class="footer-shell">
             <div>&copy; Okon Prince, 2026</div>
-            <div>This project demonstrates end-to-end speech-to-text transcription from spoken audio.</div>
-            <div>Contact: okonp07@gmail.com | +234(0)9020000299</div>
+            <div>
+                This project is meant for Educational and research purposes only.
+                It is not to be used for commercial purposes.
+            </div>
+            <div>enquiries; okonp07@gmail.com</div>
         </div>
         """,
         unsafe_allow_html=True,
@@ -372,39 +358,61 @@ def _html_bullets(items: list[tuple[str, str]]) -> str:
 
 def _author_profile_html() -> str:
     paragraphs = [
+        (
+            "Okon Prince\n"
+            "Senior Data Scientist at MIVA Open University | AI Engineer & Data Scientist"
+        ),
         "I design and deploy end-to-end data systems that turn raw data into production-ready intelligence.",
         (
-            "My core stack includes Python, Streamlit, BigQuery, Supabase, Hugging Face, "
-            "PySpark, SQL, machine learning, LLMs, and transformers."
+            "My core stack includes Python, Streamlit, BigQuery, Deep Learning, Supabase, "
+            "Hugging Face, PySpark, SQL, Machine Learning, LLMs, and Transformers."
         ),
         (
-            "My work spans risk scoring systems, A/B testing, AI-powered dashboards, "
-            "RAG pipelines, predictive analytics, and applied AI research."
+            "My work spans risk scoring systems, A/B testing, Traditional and AI-powered "
+            "dashboards, RAG pipelines, predictive analytics, Image processing and analytics, "
+            "LLM-based solutions and AI research."
         ),
         (
-            "Currently, I work as a Senior Data Scientist at MIVA Open University, "
-            "building intelligent systems that drive analytics, decision support, "
-            "and scalable AI innovation."
+            "Currently, I work as a Senior Data Scientist in the department of Research and "
+            "Development at MIVA Open University, where I carry out AI / ML Research and "
+            "build intelligent systems that drive analytics, decision support and scalable AI innovation."
         ),
     ]
     return "\n".join(
         [
             _html_paragraphs(paragraphs),
             (
-                f"<p><strong>{escape('Belief:')}</strong> "
-                f"{escape('Models are trained, systems are engineered, impact is delivered.')}</p>"
+                f"<p><strong>{escape('I believe:')}</strong> "
+                f"{escape('models are trained, systems are engineered and impact is delivered.')}</p>"
             ),
         ]
     )
 
 
-def _author_caption_html() -> str:
-    return "\n".join(
-        [
-            f'<div class="author-side-name">{escape("Prince Okon")}</div>',
-            f'<div class="author-side-role">{escape("ML Engineer & Data Scientist")}</div>',
-        ]
-    )
+def _render_sidebar_navigation() -> str:
+    if "page" not in st.session_state:
+        st.session_state.page = "App"
+
+    with st.sidebar:
+        nav_app, nav_about = st.columns(2)
+        if nav_app.button(
+            "App",
+            use_container_width=True,
+            type="primary" if st.session_state.page == "App" else "secondary",
+        ):
+            st.session_state.page = "App"
+            st.rerun()
+        if nav_about.button(
+            "About",
+            use_container_width=True,
+            type="primary" if st.session_state.page == "About" else "secondary",
+        ):
+            st.session_state.page = "About"
+            st.rerun()
+        st.link_button("future development", FUTURE_DEVELOPMENT_URL, use_container_width=True)
+        st.markdown("---")
+
+    return st.session_state.page
 
 
 @st.cache_resource
@@ -450,14 +458,14 @@ def _render_about_page() -> None:
         kicker="Project Overview",
         title="About",
         copy=(
-            "This page explains how the speech-to-text app captures audio, turns spoken words into text, "
-            "and presents a usable confidence score."
+            "This page explains what the speech-to-text application does, why it was built, "
+            "how the solution works end to end, and who built it."
         ),
         pills=[
             ("Project summary", "#about-project"),
             ("System workflow", "#system-workflow"),
-            ("Confidence reporting", "#model-behavior"),
-            ("Author profile", "#author-profile"),
+            ("About the Author", "#author-profile"),
+            ("Future development", "#future-development"),
         ],
     )
 
@@ -466,16 +474,20 @@ def _render_about_page() -> None:
         _html_paragraphs(
             [
                 (
-                    "This project is an interactive speech-to-text system built to convert "
-                    "spoken audio into readable text. It combines reusable Python modules, "
-                    "a transcription model, and a Streamlit interface so the workflow can be "
-                    "experienced as a usable application instead of only as a machine learning demo."
+                    "This project is an interactive speech-to-text application that converts "
+                    "spoken audio into written words. A user can either speak directly into the "
+                    "browser using a microphone or upload an existing audio file, and the app "
+                    "returns a transcript together with a confidence score and supporting diagnostics."
                 ),
                 (
-                    "The goal is to make the full workflow visible and usable: capture audio, "
-                    "clean and analyze it, run it through a speech recognition model, and present "
-                    "the transcript with confidence information in a way that is understandable "
-                    "to a non-technical user."
+                    "The goal of the project is to make speech AI practical, understandable, and "
+                    "easy to explore. Instead of limiting the user to a narrow classification task, "
+                    "the app now handles free-form speech and presents the output in a way that both "
+                    "technical and non-technical users can interpret."
+                ),
+                (
+                    "This makes the solution useful for educational demonstrations, AI research, "
+                    "speech-interface prototyping, and general experimentation with audio-to-text workflows."
                 ),
             ]
         ),
@@ -487,20 +499,33 @@ def _render_about_page() -> None:
         _html_paragraphs(
             [
                 (
-                    "The app accepts audio in two ways: a live browser microphone recording "
-                    "or an uploaded audio file. Once the sound is received, the system loads "
-                    "the clip at a consistent sample rate so it can generate reliable waveform "
-                    "views, audio checks, and transcription input."
+                    "The solution begins with audio capture. The user either records speech in the "
+                    "browser or uploads a supported audio file such as WAV, MP3, M4A, FLAC, or OGG. "
+                    "The app loads the audio at a consistent sample rate so the rest of the pipeline "
+                    "can work on a stable representation of the signal."
                 ),
                 (
-                    "A Whisper-family speech recognition model then decodes the speech into text. "
-                    "Instead of predicting one of a few fixed labels, the model generates a "
-                    "natural-language transcript and can also estimate the language being spoken."
+                    "Once the audio is available, the transcription engine processes the speech and "
+                    "decodes it into natural-language text. The underlying model is designed for "
+                    "automatic speech recognition, which means it does not try to choose from a small "
+                    "set of labels. Instead, it generates actual written language from what it hears."
                 ),
                 (
-                    "The app summarizes the output into a transcript, an overall confidence score, "
-                    "a detected-language readout, segment-level timing, waveform and spectrogram views, "
-                    "and audio-quality checks that help explain weak or noisy transcriptions."
+                    "After transcription, the app presents the result in a structured way. The main "
+                    "transcript shows the recognized text, the confidence score summarizes how reliable "
+                    "the transcription appears to be, and language metadata helps the user understand "
+                    "what language the system believes it detected."
+                ),
+                (
+                    "The app also exposes segment-level timing, which makes it easier to inspect how "
+                    "different parts of the recording were interpreted. In addition, waveform and "
+                    "spectrogram views help reveal silence, clipping, or noise, while audio-quality "
+                    "checks help explain why a result may be strong, weak, or partially inaccurate."
+                ),
+                (
+                    "Taken together, the solution is not just a transcript generator. It is a clear, "
+                    "inspectable speech-processing workflow that helps the user understand both the text "
+                    "output and the quality of the underlying audio."
                 ),
             ]
         ),
@@ -508,40 +533,34 @@ def _render_about_page() -> None:
     )
 
     _detail_card(
-        "How confidence is presented",
-        _html_bullets(
+        "Future development",
+        _html_paragraphs(
             [
-                ("Usability", "The app works for quick browser recording and uploaded audio clips."),
                 (
-                    "Transparency",
-                    "The transcript is paired with a confidence score, language metadata, and segment timings.",
+                    "A dedicated future-development guide is maintained in the repository for anyone "
+                    "who wants to extend this work. It outlines realistic enhancement directions, "
+                    "implementation considerations, and contributor expectations."
                 ),
                 (
-                    "Confidence logic",
-                    "The overall score is derived from segment- and word-level probabilities "
-                    "when the model exposes them.",
-                ),
-                (
-                    "Operational visibility",
-                    "Waveforms, spectrograms, and audio checks help users understand why a "
-                    "transcript is strong or weak.",
+                    "That document also makes it clear that future work built on this foundation "
+                    "must acknowledge the original project originator."
                 ),
             ]
         ),
-        anchor_id="model-behavior",
+        anchor_id="future-development",
     )
+    st.link_button("future development", FUTURE_DEVELOPMENT_URL)
 
     author_text_col, author_image_col = st.columns([1.45, 1], gap="large")
     with author_text_col:
         _detail_card(
-            "",
+            "About the Author",
             _author_profile_html(),
-            kicker="Author Profile",
             anchor_id="author-profile",
         )
 
     with author_image_col:
-        st.markdown(_author_caption_html(), unsafe_allow_html=True)
+        st.markdown("<div style='height: 3.35rem;'></div>", unsafe_allow_html=True)
         image_left, image_center, image_right = st.columns([0.12, 0.76, 0.12])
         with image_center:
             st.image(AUTHOR_IMAGE, use_container_width=True)
@@ -598,16 +617,16 @@ def _render_app_page() -> None:
     audio_source = None
     if input_method == "Record with microphone":
         st.caption(
-            "Click record, allow microphone access in your browser, say one digit, then stop recording."
+            "Click record, allow microphone access in your browser, speak naturally, then stop recording."
         )
         audio_source = st.audio_input(
-            "Record a spoken digit",
+            "Record speech",
             sample_rate=22050,
             key=f"audio-input-{st.session_state.audio_input_key}",
         )
     else:
         audio_source = st.file_uploader(
-            "Upload an audio file containing one spoken digit",
+            "Upload an audio file containing speech",
             type=["wav", "mp3", "m4a", "flac", "ogg"],
             key=f"file-uploader-{st.session_state.file_uploader_key}",
         )
@@ -735,9 +754,7 @@ def _render_app_page() -> None:
 
 def main() -> None:
     _inject_styles()
-
-    with st.sidebar:
-        page = st.radio("Page", ["App", "About"], index=0)
+    page = _render_sidebar_navigation()
 
     if page == "About":
         _render_about_page()
