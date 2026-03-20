@@ -32,16 +32,88 @@ def _inject_styles() -> None:
     st.markdown(
         """
         <style>
+        :root {
+            color-scheme: light;
+        }
         .stApp {
+            color: #102a26;
             background:
                 radial-gradient(circle at top left, rgba(242, 201, 76, 0.18), transparent 30%),
                 radial-gradient(circle at top right, rgba(15, 118, 110, 0.20), transparent 28%),
                 linear-gradient(180deg, #f7f3ea 0%, #f4efe4 45%, #efe7d8 100%);
         }
+        [data-testid="stAppViewContainer"] {
+            color: #102a26;
+        }
+        [data-testid="stHeader"] {
+            background: rgba(247, 243, 234, 0.82);
+            backdrop-filter: blur(8px);
+        }
         .block-container {
             padding-top: 2rem;
             padding-bottom: 3rem;
             max-width: 1180px;
+        }
+        label[data-testid="stWidgetLabel"],
+        label[data-testid="stWidgetLabel"] p,
+        .stCaption,
+        .stCaption p,
+        .stRadio p,
+        .stRadio label,
+        .stFileUploader label,
+        .stAudioInput label,
+        .stSelectbox label,
+        .stTextInput label,
+        .stTextArea label,
+        .stSlider label,
+        .stMarkdown,
+        .stMarkdown p:not(.hero-copy),
+        .stMarkdown li,
+        .stMarkdown span:not(.hero-kicker):not(.hero-title):not(.hero-copy) {
+            color: #22313f !important;
+        }
+        .stRadio [role="radiogroup"] label,
+        .stRadio [role="radiogroup"] p {
+            color: #22313f !important;
+        }
+        .stAudioInput,
+        .stFileUploader,
+        .stSelectbox,
+        .stTextInput,
+        .stTextArea,
+        .stSlider,
+        .stRadio {
+            color: #22313f;
+        }
+        .stButton > button,
+        .stDownloadButton > button {
+            background: rgba(255, 252, 245, 0.92);
+            color: #102a26;
+            border: 1px solid rgba(148, 163, 184, 0.24);
+        }
+        .stButton > button:hover,
+        .stDownloadButton > button:hover {
+            color: #102a26;
+            border-color: rgba(15, 118, 110, 0.32);
+            background: rgba(255, 252, 245, 1);
+        }
+        .stButton > button[kind="primary"],
+        .stDownloadButton > button[kind="primary"] {
+            background: #0f766e;
+            color: #fff9ed;
+            border-color: #0f766e;
+        }
+        .stButton > button[kind="primary"]:hover,
+        .stDownloadButton > button[kind="primary"]:hover {
+            background: #115e59;
+            color: #fff9ed;
+            border-color: #115e59;
+        }
+        .stAlert {
+            color: #15312d;
+        }
+        [data-testid="stAlertContainer"] * {
+            color: inherit;
         }
         .hero-shell {
             position: relative;
@@ -243,6 +315,22 @@ def _inject_styles() -> None:
             color: #4b5563;
             font-size: 0.93rem;
             line-height: 1.8;
+        }
+        @media (max-width: 768px) {
+            .block-container {
+                padding-top: 1.25rem;
+                padding-bottom: 2rem;
+            }
+            .hero-shell {
+                padding: 1.4rem 1.2rem 1.2rem 1.2rem;
+                border-radius: 22px;
+            }
+            .hero-title {
+                font-size: 2.05rem;
+            }
+            .hero-copy {
+                font-size: 0.98rem;
+            }
         }
         </style>
         """,
