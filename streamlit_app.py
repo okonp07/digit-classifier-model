@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import csv
 import tempfile
+from datetime import datetime, timezone
 from html import escape
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -22,6 +24,7 @@ ASSETS_DIR = Path(__file__).resolve().parent / "assets"
 AUTHOR_IMAGE = ASSETS_DIR / "pic1.png"
 REPO_URL = "https://github.com/okonp07/Speech-to-text-generation-engine"
 FUTURE_DEVELOPMENT_URL = f"{REPO_URL}/blob/main/future-development.md"
+FEEDBACK_FILE = Path(__file__).resolve().parent / "feedback_responses.csv"
 HeroPill = tuple[str, str]
 
 
@@ -394,7 +397,7 @@ def _render_sidebar_navigation() -> str:
         st.session_state.page = "App"
 
     with st.sidebar:
-        nav_app, nav_about = st.columns(2)
+        nav_app, nav_about, nav_feedback = st.columns(3)
         if nav_app.button(
             "App",
             use_container_width=True,
@@ -408,6 +411,13 @@ def _render_sidebar_navigation() -> str:
             type="primary" if st.session_state.page == "About" else "secondary",
         ):
             st.session_state.page = "About"
+            st.rerun()
+        if nav_feedback.button(
+            "Feedback",
+            use_container_width=True,
+            type="primary" if st.session_state.page == "Feedback" else "secondary",
+        ):
+            st.session_state.page = "Feedback"
             st.rerun()
         link_future, link_codebase = st.columns(2)
         link_future.link_button(
@@ -423,6 +433,123 @@ def _render_sidebar_navigation() -> str:
         st.markdown("---")
 
     return st.session_state.page
+
+
+def _append_feedback_row(payload: dict[str, object]) -> None:
+    FEEDBACK_FILE.parent.mkdir(parents=True, exist_ok=True)
+    fieldnames = [
+        "submitted_at_utc",
+        "name",
+        "email",
+        "use_case",
+        "overall_rating",
+        "transcription_quality",
+        "ease_of_use",
+        "design_clarity",
+        "would_recommend",
+        "favorite_part",
+        "improvement_suggestion",
+    ]
+    file_exists = FEEDBACK_FILE.exists()
+    with FEEDBACK_FILE.open("a", newline="", encoding="utf-8") as handle:
+        writer = csv.DictWriter(handle, fieldnames=fieldnames)
+        if not file_exists:
+            writer.writeheader()
+        writer.writerow(payload)
+
+
+def _render_feedback_page() -> None:
+    _render_hero(
+        kicker="User Feedback",
+        title="Feedback",
+        copy=(
+            "Share your experience with the app so we can understand what works well, "
+            "what feels unclear, and where the product should improve next."
+        ),
+        pills=[
+            ("User experience", "#feedback-form"),
+            ("Transcription quality", "#feedback-form"),
+            ("Design clarity", "#feedback-form"),
+            ("Improvement ideas", "#feedback-form"),
+        ],
+    )
+
+    _section_intro(
+        "Why feedback matters",
+        (
+            "This form helps us assess the real user experience of the speech-to-text app, "
+            "including transcription quality, ease of use, interface clarity, and priorities for future improvement."
+        ),
+    )
+
+    _detail_card(
+        "Feedback form",
+        _html_paragraphs(
+            [
+                "Your responses are stored locally with the app so they can be reviewed later.",
+                "You can keep your feedback anonymous, or include contact details if you want a follow-up.",
+            ]
+        ),
+        anchor_id="feedback-form",
+    )
+
+    with st.form("feedback-form-fields", clear_on_submit=True):
+        identity_left, identity_right = st.columns(2)
+        with identity_left:
+            name = st.text_input("Name (optional)")
+        with identity_right:
+            email = st.text_input("Email (optional)")
+
+        use_case = st.selectbox(
+            "What best describes your use case?",
+            [
+                "Demo / exploration",
+                "Research / experimentation",
+                "Education / learning",
+                "Product prototype",
+                "Personal transcription",
+                "Other",
+            ],
+        )
+
+        overall_rating = st.slider("Overall experience", min_value=1, max_value=5, value=4)
+        transcription_quality = st.slider("Transcription quality", min_value=1, max_value=5, value=4)
+        ease_of_use = st.slider("Ease of use", min_value=1, max_value=5, value=4)
+        design_clarity = st.slider("Interface clarity", min_value=1, max_value=5, value=4)
+        would_recommend = st.radio(
+            "Would you recommend this app to someone else?",
+            ["Yes", "Maybe", "No"],
+            horizontal=True,
+        )
+        favorite_part = st.text_area(
+            "What did you like most?",
+            placeholder="Tell us what felt strongest or most useful in the experience.",
+            height=120,
+        )
+        improvement_suggestion = st.text_area(
+            "What should we improve?",
+            placeholder="Share anything that felt unclear, inaccurate, or missing.",
+            height=140,
+        )
+
+        submitted = st.form_submit_button("Submit feedback", use_container_width=True, type="primary")
+
+    if submitted:
+        payload = {
+            "submitted_at_utc": datetime.now(timezone.utc).isoformat(),
+            "name": name.strip(),
+            "email": email.strip(),
+            "use_case": use_case,
+            "overall_rating": overall_rating,
+            "transcription_quality": transcription_quality,
+            "ease_of_use": ease_of_use,
+            "design_clarity": design_clarity,
+            "would_recommend": would_recommend,
+            "favorite_part": favorite_part.strip(),
+            "improvement_suggestion": improvement_suggestion.strip(),
+        }
+        _append_feedback_row(payload)
+        st.success("Thanks for the feedback. Your response has been recorded.")
 
 
 @st.cache_resource
@@ -768,6 +895,8 @@ def main() -> None:
 
     if page == "About":
         _render_about_page()
+    elif page == "Feedback":
+        _render_feedback_page()
     else:
         _render_app_page()
 
