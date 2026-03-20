@@ -595,8 +595,8 @@ def _render_about_page() -> None:
         kicker="Project Overview",
         title="About",
         copy=(
-            "This page explains what the speech-to-text application does, why it was built, "
-            "how the solution works end to end, and who built it."
+            "This page explains what the speech-to-text application does, why it was built "
+            "and how the solution works end to end."
         ),
         pills=[
             ("Project summary", "#about-project"),
