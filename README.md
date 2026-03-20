@@ -9,7 +9,7 @@ Product requirements for this release: [`docs/speech-to-text-prd.md`](docs/speec
 ## Live app
 
 - Streamlit app: [https://digit-classifier-model-1.streamlit.app](https://digit-classifier-model-1.streamlit.app)
-- Repository: [https://github.com/okonp07/digit-classifier-model](https://github.com/okonp07/digit-classifier-model)
+- Repository: [https://github.com/okonp07/Speech-to-text-generation-engine](https://github.com/okonp07/Speech-to-text-generation-engine)
 
 ## What is in this repository
 
@@ -45,8 +45,8 @@ Product requirements for this release: [`docs/speech-to-text-prd.md`](docs/speec
 ## Run locally
 
 ```bash
-git clone https://github.com/okonp07/digit-classifier-model.git
-cd digit-classifier-model
+git clone https://github.com/okonp07/Speech-to-text-generation-engine.git
+cd Speech-to-text-generation-engine
 
 python -m venv .venv
 source .venv/bin/activate  # Windows: .venv\Scripts\activate
@@ -114,7 +114,7 @@ streamlit run streamlit_app.py
 ## Project structure
 
 ```text
-digit-classifier-model/
+Speech-to-text-generation-engine/
 ├── .github/workflows/ci.yml
 ├── Digit_Classification_from_Audio.ipynb
 ├── Dockerfile

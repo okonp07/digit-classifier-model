@@ -2,7 +2,7 @@
 
 ## Product
 
-Speech-to-Text Transcription Update for `digit-classifier-model`
+Speech-to-Text Transcription Update for `Speech-to-text-generation-engine`
 
 ## Document purpose
 
@@ -152,7 +152,7 @@ We need a version of the app that:
 ## Rollout notes
 
 - Ship as an in-place upgrade to the existing Streamlit app.
-- Preserve the repository URL and deployment surface.
+- Preserve the deployment surface while updating repository references to the new project name.
 - Keep legacy files until a later cleanup release to avoid unnecessary breakage.
 
 ## Future enhancements

@@ -20,7 +20,7 @@ st.set_page_config(page_title="Speech-to-Text Transcription", page_icon="🎤", 
 
 ASSETS_DIR = Path(__file__).resolve().parent / "assets"
 AUTHOR_IMAGE = ASSETS_DIR / "pic1.png"
-REPO_URL = "https://github.com/okonp07/digit-classifier-model"
+REPO_URL = "https://github.com/okonp07/Speech-to-text-generation-engine"
 FUTURE_DEVELOPMENT_URL = f"{REPO_URL}/blob/main/future-development.md"
 HeroPill = tuple[str, str]
 
@@ -411,12 +411,12 @@ def _render_sidebar_navigation() -> str:
             st.rerun()
         link_future, link_codebase = st.columns(2)
         link_future.link_button(
-            "future development",
+            "Future dev",
             FUTURE_DEVELOPMENT_URL,
             use_container_width=True,
         )
         link_codebase.link_button(
-            "codebase",
+            "Codebase",
             REPO_URL,
             use_container_width=True,
         )

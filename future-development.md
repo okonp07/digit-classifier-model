@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This document provides a clear guide for future developmental work on the `digit-classifier-model` project in its current speech-to-text form. It outlines practical directions for enrichment, implementation priorities, and contributor expectations so that future work can stay aligned with the intent and quality of the existing system.
+This document provides a clear guide for future developmental work on the `Speech-to-text-generation-engine` project in its current speech-to-text form. It outlines practical directions for enrichment, implementation priorities, and contributor expectations so that future work can stay aligned with the intent and quality of the existing system.
 
 ## Current project scope
 
