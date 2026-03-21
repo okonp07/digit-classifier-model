@@ -85,11 +85,45 @@ def _inject_styles() -> None:
         .stRadio {
             color: #22313f;
         }
+        .stTextInput input,
+        .stTextArea textarea,
+        .stNumberInput input,
+        [data-baseweb="input"] input,
+        [data-baseweb="textarea"] textarea {
+            color: #102a26 !important;
+            background: rgba(255, 252, 245, 0.9) !important;
+        }
+        [data-baseweb="select"] > div {
+            color: #102a26 !important;
+            background: rgba(255, 252, 245, 0.9) !important;
+        }
+        .stFileUploader section {
+            background: rgba(255, 252, 245, 0.78);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            border-radius: 18px;
+        }
+        .stFileUploader small,
+        .stFileUploader span,
+        .stFileUploader p {
+            color: #22313f !important;
+        }
+        .stRadio [role="radiogroup"] {
+            gap: 0.55rem;
+        }
+        .stRadio [role="radiogroup"] > label {
+            background: rgba(255, 252, 245, 0.64);
+            border: 1px solid rgba(148, 163, 184, 0.18);
+            border-radius: 16px;
+            padding: 0.2rem 0.75rem;
+        }
         .stButton > button,
         .stDownloadButton > button {
             background: rgba(255, 252, 245, 0.92);
             color: #102a26;
             border: 1px solid rgba(148, 163, 184, 0.24);
+            min-height: 3rem;
+            font-size: 0.98rem;
+            font-weight: 600;
         }
         .stButton > button:hover,
         .stDownloadButton > button:hover {
@@ -317,6 +351,14 @@ def _inject_styles() -> None:
             line-height: 1.8;
         }
         @media (max-width: 768px) {
+            .stApp {
+                background:
+                    radial-gradient(circle at top left, rgba(242, 201, 76, 0.12), transparent 30%),
+                    linear-gradient(180deg, #f8f4eb 0%, #f5efe2 54%, #efe7d8 100%);
+            }
+            [data-testid="stHeader"] {
+                background: rgba(248, 244, 235, 0.92);
+            }
             .block-container {
                 padding-top: 1.25rem;
                 padding-bottom: 2rem;
@@ -325,11 +367,99 @@ def _inject_styles() -> None:
                 padding: 1.4rem 1.2rem 1.2rem 1.2rem;
                 border-radius: 22px;
             }
+            .hero-shell:after {
+                display: none;
+            }
             .hero-title {
                 font-size: 2.05rem;
+                line-height: 1.06;
             }
             .hero-copy {
                 font-size: 0.98rem;
+                line-height: 1.62;
+            }
+            .hero-pills {
+                gap: 0.45rem;
+            }
+            a.hero-pill {
+                font-size: 0.82rem;
+                padding: 0.45rem 0.72rem;
+            }
+            .section-card,
+            .detail-card,
+            .transcript-shell {
+                border-radius: 18px;
+                padding: 1rem 0.95rem 0.95rem 0.95rem;
+                box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
+            }
+            .section-title,
+            .detail-card h3 {
+                font-size: 1.02rem;
+            }
+            .section-copy,
+            .detail-card p,
+            .detail-card ul,
+            .history-caption,
+            .footer-shell {
+                font-size: 0.95rem;
+                line-height: 1.68;
+            }
+            .transcript-body {
+                font-size: 0.99rem;
+                line-height: 1.72;
+            }
+            div[data-testid="stMetric"] {
+                border-radius: 18px;
+                padding: 0.85rem;
+            }
+            .stButton > button,
+            .stDownloadButton > button {
+                min-height: 3.1rem;
+                font-size: 0.95rem;
+            }
+            .stRadio [role="radiogroup"] > label {
+                padding: 0.15rem 0.65rem;
+            }
+            .stTextInput input,
+            .stTextArea textarea,
+            [data-baseweb="select"] > div {
+                font-size: 0.98rem !important;
+            }
+        }
+        @media (max-width: 560px) {
+            .hero-title {
+                font-size: 1.82rem;
+            }
+            .hero-copy,
+            .section-copy,
+            .detail-card p,
+            .detail-card ul,
+            .transcript-body,
+            .footer-shell {
+                font-size: 0.93rem;
+            }
+            .hero-pills {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 0.45rem;
+            }
+            a.hero-pill {
+                text-align: center;
+                width: 100%;
+            }
+            .stButton > button,
+            .stDownloadButton > button {
+                font-size: 0.92rem;
+            }
+            .stRadio [role="radiogroup"] {
+                align-items: stretch;
+            }
+            .stRadio [role="radiogroup"] > label {
+                width: 100%;
+            }
+            [data-testid="stSidebar"] .stButton > button,
+            [data-testid="stSidebar"] .stLinkButton > a {
+                min-height: 2.9rem;
             }
         }
         </style>
